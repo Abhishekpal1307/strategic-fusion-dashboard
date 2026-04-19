@@ -106,6 +106,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             <Input placeholder="Search intelligence node..." className="h-9 pl-8" />
           </div>
           <div className="ml-auto flex items-center gap-2">
+            {user.email === "demo.analyst@fusion.ops" && (
+              <span className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                Demo mode
+              </span>
+            )}
             <span className="hidden md:inline-block rounded-md border border-border bg-card px-2 py-1 font-mono text-xs text-muted-foreground">
               {utc.toISOString().replace("T", " ").slice(0, 19)} UTC
             </span>
