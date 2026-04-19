@@ -1,1 +1,4 @@
 project_id = "pmrpzwnqdlywuqwuexwu"
+
+[functions.ai-summary-stream]
+verify_jwt = false
