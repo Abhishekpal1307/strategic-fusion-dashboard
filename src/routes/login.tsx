@@ -77,6 +77,26 @@ function LoginPage() {
     }
   }
 
+  async function forgotPassword() {
+    const parsed = z.string().email().safeParse(email.trim());
+    if (!parsed.success) {
+      toast.error("Enter your email above first, then tap Forgot password.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Password reset link sent. Check your inbox.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not send reset email");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function demoLogin() {
     setEmail(DEMO_EMAIL);
     setPassword(DEMO_PASSWORD);
@@ -164,6 +184,16 @@ function LoginPage() {
                 className="text-primary hover:underline text-xs"
               >
                 {mode === "signin" ? "Request access" : "Have access? Sign in"}
+              </button>
+            </div>
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={forgotPassword}
+                disabled={busy}
+                className="text-xs text-primary hover:underline disabled:opacity-50"
+              >
+                Forgot password?
               </button>
             </div>
             <Button type="submit" className="w-full glow-primary" disabled={busy}>
