@@ -13,7 +13,8 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { useIntelNodes } from "@/hooks/use-intel-nodes";
 import { Button } from "@/components/ui/button";
-import { generateAnalystSummary } from "@/server/ai-summary";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { format, subDays } from "date-fns";
 import {
   Area,
@@ -66,9 +67,69 @@ function Overview() {
 
   async function genSummary() {
     setAiLoading(true);
+    setSummary("");
     try {
-      const r = await generateAnalystSummary();
-      setSummary(r.summary);
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-summary-stream`;
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (resp.status === 429) {
+        toast.error("Rate limit reached. Try again in a moment.");
+        setSummary("Rate limit reached on the AI gateway. Try again in a moment.");
+        return;
+      }
+      if (resp.status === 402) {
+        toast.error("AI credits exhausted.");
+        setSummary("AI credits exhausted. Add funds at Settings → Workspace → Usage to continue.");
+        return;
+      }
+      if (!resp.ok || !resp.body) {
+        throw new Error(`Stream failed (${resp.status})`);
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
+      let acc = "";
+      let streamDone = false;
+
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let nl: number;
+        while ((nl = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, nl);
+          textBuffer = textBuffer.slice(nl + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (!line || line.startsWith(":")) continue;
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") {
+            streamDone = true;
+            break;
+          }
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content: string | undefined = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              acc += content;
+              setSummary(acc);
+            }
+          } catch {
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
     } catch (e) {
       setSummary(e instanceof Error ? e.message : "Failed to generate summary.");
     } finally {
