@@ -33,6 +33,13 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [nowIso, setNowIso] = useState<string>("");
+
+  useEffect(() => {
+    setNowIso(new Date().toISOString().slice(0, 19));
+    const t = setInterval(() => setNowIso(new Date().toISOString().slice(0, 19)), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     if (user) navigate({ to: "/dashboard" });
@@ -88,8 +95,8 @@ function LoginPage() {
             <ShieldCheck className="h-4 w-4 text-primary" /> Secured by Lovable Cloud · RLS-enforced per analyst
           </div>
         </div>
-        <div className="relative text-xs text-muted-foreground font-mono">
-          {new Date().toISOString().slice(0, 19)}Z · classified-grade UI
+        <div className="relative text-xs text-muted-foreground font-mono min-h-[1rem]">
+          {nowIso ? `${nowIso}Z · classified-grade UI` : "\u00A0"}
         </div>
       </div>
 
