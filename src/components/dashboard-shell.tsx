@@ -16,17 +16,26 @@ import {
   Radar,
   ChevronLeft,
   ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "@/hooks/use-theme";
+import { useAlerts } from "@/hooks/use-alerts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
 
 const NAV = [
   { to: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { to: "/dashboard/map", label: "Intelligence Map", icon: MapIcon },
   { to: "/dashboard/upload", label: "Upload Center", icon: Upload },
   { to: "/dashboard/sources", label: "Sources", icon: Database },
+  { to: "/dashboard/alerts", label: "Alerts", icon: AlertTriangle },
   { to: "/dashboard/reports", label: "Reports", icon: FileText },
   { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/dashboard/settings", label: "Settings", icon: Settings },
@@ -37,6 +46,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggle } = useTheme();
+  const { alerts, unreadCount, markAllRead } = useAlerts(user?.id);
   const [collapsed, setCollapsed] = useState(false);
   const [utc, setUtc] = useState(new Date());
 
@@ -115,10 +125,47 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             <span className="hidden md:inline-block rounded-md border border-border bg-card px-2 py-1 font-mono text-xs text-muted-foreground">
               {utc.toISOString().replace("T", " ").slice(0, 19)} UTC
             </span>
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-4 w-4" />
-              <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
-            </Button>
+            <Popover onOpenChange={(o) => o && unreadCount > 0 && markAllRead()}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative" aria-label="Alerts">
+                  <Bell className="h-4 w-4" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--color-risk-high)] px-1 text-[9px] font-bold text-white">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-0">
+                <div className="flex items-center justify-between border-b border-border px-3 py-2">
+                  <span className="text-sm font-medium">High-risk alerts</span>
+                  <Link
+                    to="/dashboard/alerts"
+                    className="text-[11px] text-primary hover:underline"
+                  >
+                    View all
+                  </Link>
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {alerts.length === 0 && (
+                    <div className="px-3 py-6 text-center text-xs text-muted-foreground">
+                      No alerts yet. New high-risk nodes will appear here.
+                    </div>
+                  )}
+                  {alerts.slice(0, 6).map((a) => (
+                    <div key={a.id} className="flex items-start gap-2 border-b border-border/50 px-3 py-2 last:border-0">
+                      <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[color:var(--color-risk-high)]" />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-xs font-medium">{a.title}</div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {a.source_type} · {a.region ?? "Unknown"} · {format(new Date(a.created_at), "MMM d, HH:mm")}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
             <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>

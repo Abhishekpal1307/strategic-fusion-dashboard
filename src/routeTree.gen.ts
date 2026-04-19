@@ -20,6 +20,7 @@ import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settin
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
 import { Route as DashboardMapRouteImport } from './routes/dashboard.map'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
+import { Route as DashboardAlertsRouteImport } from './routes/dashboard.alerts'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -76,12 +77,18 @@ const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAlertsRoute = DashboardAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/dashboard/alerts': typeof DashboardAlertsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/map': typeof DashboardMapRoute
   '/dashboard/reports': typeof DashboardReportsRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/dashboard/alerts': typeof DashboardAlertsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/map': typeof DashboardMapRoute
   '/dashboard/reports': typeof DashboardReportsRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/dashboard/alerts': typeof DashboardAlertsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/map': typeof DashboardMapRoute
   '/dashboard/reports': typeof DashboardReportsRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/reset-password'
+    | '/dashboard/alerts'
     | '/dashboard/analytics'
     | '/dashboard/map'
     | '/dashboard/reports'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/reset-password'
+    | '/dashboard/alerts'
     | '/dashboard/analytics'
     | '/dashboard/map'
     | '/dashboard/reports'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/reset-password'
+    | '/dashboard/alerts'
     | '/dashboard/analytics'
     | '/dashboard/map'
     | '/dashboard/reports'
@@ -243,10 +255,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAnalyticsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/alerts': {
+      id: '/dashboard/alerts'
+      path: '/alerts'
+      fullPath: '/dashboard/alerts'
+      preLoaderRoute: typeof DashboardAlertsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
 interface DashboardRouteChildren {
+  DashboardAlertsRoute: typeof DashboardAlertsRoute
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
   DashboardMapRoute: typeof DashboardMapRoute
   DashboardReportsRoute: typeof DashboardReportsRoute
@@ -257,6 +277,7 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAlertsRoute: DashboardAlertsRoute,
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
   DashboardMapRoute: DashboardMapRoute,
   DashboardReportsRoute: DashboardReportsRoute,
