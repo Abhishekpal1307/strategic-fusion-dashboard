@@ -22,7 +22,7 @@ export const Route = createFileRoute("/login")({
 
 const credSchema = z.object({
   email: z.string().trim().email("Invalid email").max(255),
-  password: z.string().min(6, "Min 6 characters").max(128),
+  password: z.string().min(4, "Min 4 characters").max(128),
 });
 
 function LoginPage() {
