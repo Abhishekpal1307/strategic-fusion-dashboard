@@ -1,7 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { Radar, Loader2, ShieldCheck } from "lucide-react";
+import { Radar, Loader2, ShieldCheck, Zap } from "lucide-react";
+
+const DEMO_EMAIL = "demo.analyst@fusion.ops";
+const DEMO_PASSWORD = "demo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -74,6 +77,37 @@ function LoginPage() {
     }
   }
 
+  async function demoLogin() {
+    setEmail(DEMO_EMAIL);
+    setPassword(DEMO_PASSWORD);
+    setBusy(true);
+    try {
+      let { error } = await supabase.auth.signInWithPassword({
+        email: DEMO_EMAIL,
+        password: DEMO_PASSWORD,
+      });
+      if (error) {
+        // Auto-create the demo account on first run
+        const { error: signUpErr } = await supabase.auth.signUp({
+          email: DEMO_EMAIL,
+          password: DEMO_PASSWORD,
+          options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+        });
+        if (signUpErr) throw signUpErr;
+        const retry = await supabase.auth.signInWithPassword({
+          email: DEMO_EMAIL,
+          password: DEMO_PASSWORD,
+        });
+        if (retry.error) throw retry.error;
+      }
+      toast.success("Demo analyst signed in.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Demo login failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="min-h-screen w-full grid lg:grid-cols-2 bg-background text-foreground">
       <div className="relative hidden lg:flex flex-col justify-between p-10 overflow-hidden border-r border-border">
@@ -135,6 +169,26 @@ function LoginPage() {
             <Button type="submit" className="w-full glow-primary" disabled={busy}>
               {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {mode === "signin" ? "Analyst Login" : "Request access"}
+            </Button>
+
+            <div className="relative my-2">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-[10px] uppercase tracking-wider">
+                <span className="bg-background px-2 text-muted-foreground">or</span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={demoLogin}
+              disabled={busy}
+            >
+              <Zap className="mr-2 h-4 w-4 text-primary" />
+              One-click Demo analyst
             </Button>
           </form>
 
