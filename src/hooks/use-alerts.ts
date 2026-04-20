@@ -12,6 +12,7 @@ import {
   saveSeen,
   type AlertEntry,
 } from "@/lib/alerts-store";
+import { playAlertBeep } from "@/lib/alert-sound";
 
 export function useAlerts(userId: string | undefined) {
   const [alerts, setAlerts] = useState<AlertEntry[]>([]);
@@ -48,6 +49,7 @@ export function useAlerts(userId: string | undefined) {
       });
 
       if (!opts.silent) {
+        playAlertBeep();
         toast.error(`High-risk node: ${node.title}`, {
           description: `${node.source_type} · ${node.region ?? "Unknown region"}`,
           icon: createElement(AlertTriangle, { className: "h-4 w-4" }),
