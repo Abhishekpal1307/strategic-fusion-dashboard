@@ -78,7 +78,7 @@ export function useAlerts(userId: string | undefined) {
     })();
 
     const ch = supabase
-      .channel("intel-nodes-alerts")
+      .channel(`intel-nodes-alerts-${userId}-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "intel_nodes" },
