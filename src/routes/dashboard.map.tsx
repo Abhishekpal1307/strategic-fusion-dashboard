@@ -7,17 +7,15 @@ import {
   Mountain,
   Maximize2,
   Minimize2,
-  X,
-  Image as ImageIcon,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useIntelNodes } from "@/hooks/use-intel-nodes";
 import { IntelMap } from "@/components/intel-map";
+import { NodeDetailDrawer } from "@/components/node-detail-drawer";
 import type { IntelNode, RiskLevel, SourceType } from "@/lib/intel-types";
 import { RISK_LABEL, SOURCE_LABEL } from "@/lib/intel-types";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/dashboard/map")({
   head: () => ({ meta: [{ title: "Intelligence Map — Strategic Fusion Dashboard" }] }),
