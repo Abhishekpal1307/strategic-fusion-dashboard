@@ -275,6 +275,13 @@ function Overview() {
           )}
         </div>
       </div>
+
+      <NodeDetailDrawer
+        node={selected}
+        open={!!selected}
+        onOpenChange={(o) => !o && setSelected(null)}
+        onChanged={refresh}
+      />
     </div>
   );
 }
