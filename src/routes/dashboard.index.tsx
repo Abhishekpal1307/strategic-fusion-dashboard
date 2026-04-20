@@ -76,6 +76,7 @@ function Overview() {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           "Content-Type": "application/json",
         },
       });
