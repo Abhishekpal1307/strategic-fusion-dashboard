@@ -13,6 +13,8 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { useIntelNodes } from "@/hooks/use-intel-nodes";
 import { Button } from "@/components/ui/button";
+import { NodeDetailDrawer } from "@/components/node-detail-drawer";
+import type { IntelNode } from "@/lib/intel-types";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, subDays } from "date-fns";
@@ -34,6 +36,7 @@ export const Route = createFileRoute("/dashboard/")({
 function Overview() {
   const { user } = useAuth();
   const { nodes, refresh } = useIntelNodes(user?.id);
+  const [selected, setSelected] = useState<IntelNode | null>(null);
   const [summary, setSummary] = useState<string>(
     "Awaiting AI analyst summary. Click Generate to produce a tactical situation paragraph from the live feed.",
   );
@@ -237,9 +240,13 @@ function Overview() {
         </div>
         <div className="mt-3 divide-y divide-border">
           {nodes.slice(0, 8).map((n) => (
-            <div key={n.id} className="flex items-center gap-3 py-2 text-sm">
+            <button
+              key={n.id}
+              onClick={() => setSelected(n)}
+              className="w-full flex items-center gap-3 py-2 text-sm text-left hover:bg-accent/40 -mx-2 px-2 rounded-md transition-colors"
+            >
               <span
-                className="h-2 w-2 rounded-full"
+                className="h-2 w-2 rounded-full shrink-0"
                 style={{
                   background:
                     n.risk_level === "high"
@@ -259,7 +266,7 @@ function Overview() {
               <span className="text-xs text-muted-foreground">
                 {format(new Date(n.created_at), "MMM d, HH:mm")}
               </span>
-            </div>
+            </button>
           ))}
           {nodes.length === 0 && (
             <div className="py-8 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
@@ -268,6 +275,13 @@ function Overview() {
           )}
         </div>
       </div>
+
+      <NodeDetailDrawer
+        node={selected}
+        open={!!selected}
+        onOpenChange={(o) => !o && setSelected(null)}
+        onChanged={refresh}
+      />
     </div>
   );
 }

@@ -7,17 +7,15 @@ import {
   Mountain,
   Maximize2,
   Minimize2,
-  X,
-  Image as ImageIcon,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useIntelNodes } from "@/hooks/use-intel-nodes";
 import { IntelMap } from "@/components/intel-map";
+import { NodeDetailDrawer } from "@/components/node-detail-drawer";
 import type { IntelNode, RiskLevel, SourceType } from "@/lib/intel-types";
 import { RISK_LABEL, SOURCE_LABEL } from "@/lib/intel-types";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/dashboard/map")({
   head: () => ({ meta: [{ title: "Intelligence Map — Strategic Fusion Dashboard" }] }),
@@ -30,7 +28,7 @@ type Style = "dark" | "satellite" | "terrain";
 
 function MapPage() {
   const { user } = useAuth();
-  const { nodes } = useIntelNodes(user?.id);
+  const { nodes, refresh } = useIntelNodes(user?.id);
   const [style, setStyle] = useState<Style>("dark");
   const [risks, setRisks] = useState<RiskLevel[]>([...RISKS]);
   const [sources, setSources] = useState<SourceType[]>([...SOURCES]);
@@ -134,66 +132,13 @@ function MapPage() {
         </div>
       </div>
 
-      {/* Side panel */}
-      {selected && (
-        <div className="absolute right-3 top-16 bottom-3 z-10 w-[320px] max-w-[88vw] glass rounded-lg p-4 overflow-y-auto">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">{selected.source_type}</Badge>
-                <Badge
-                  style={{
-                    background:
-                      selected.risk_level === "high"
-                        ? "var(--color-risk-high)"
-                        : selected.risk_level === "medium"
-                          ? "var(--color-risk-medium)"
-                          : selected.risk_level === "low"
-                            ? "var(--color-risk-low)"
-                            : "var(--color-risk-verified)",
-                    color: "white",
-                  }}
-                >
-                  {RISK_LABEL[selected.risk_level]}
-                </Badge>
-              </div>
-              <h3 className="mt-2 font-semibold">{selected.title}</h3>
-              <div className="text-xs text-muted-foreground">
-                {selected.region} · {selected.latitude.toFixed(4)}, {selected.longitude.toFixed(4)}
-              </div>
-            </div>
-            <Button size="icon" variant="ghost" onClick={() => setSelected(null)}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {selected.image_url ? (
-            <img
-              src={selected.image_url}
-              alt={selected.title}
-              className="mt-3 w-full h-40 object-cover rounded-md border border-border"
-            />
-          ) : (
-            <div className="mt-3 w-full h-40 rounded-md border border-border bg-muted flex items-center justify-center text-muted-foreground">
-              <ImageIcon className="h-6 w-6" />
-            </div>
-          )}
-
-          <div className="mt-4 space-y-3 text-sm">
-            <div>
-              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Description</div>
-              <p className="mt-1">{selected.description ?? "—"}</p>
-            </div>
-            <div>
-              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Analyst notes</div>
-              <p className="mt-1">{selected.notes ?? "—"}</p>
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Created {new Date(selected.created_at).toUTCString()}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Detail drawer */}
+      <NodeDetailDrawer
+        node={selected}
+        open={!!selected}
+        onOpenChange={(o) => !o && setSelected(null)}
+        onChanged={refresh}
+      />
 
       {/* Legend bottom-right */}
       <div className="absolute right-3 bottom-3 z-10 glass rounded-lg px-3 py-2 text-[11px] flex items-center gap-3">
